@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generate Report</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .hamburger {
+      position: absolute;
+      left: 20px;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100%;
+      background: white;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 1001;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar a {
+      display: block;
+      margin: 30px 0;
+      text-decoration: none;
+      color: black;
+      font-weight: bold;
+      font-size: 20px
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1000;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    .content {
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .generate-btn {
+      background-color: red;
+      color: white;
+      padding: 20px 40px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 30px;
+    }
+
+    .generate-btn:hover {
+      background-color: darkred;
+    }
+
+    .month-select {
+      margin: 10px auto;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    select, input[disabled] {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      min-width: 120px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    /* Full screen report */
+    #report-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 2000;
+      overflow-y: auto;
+      padding: 40px;
+    }
+
+    #report-screen.active {
+      display: block;
+    }
+
+    #report-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 32px;
+      font-weight: bold;
+      color: black;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    #report-screen h2, #report-screen h3, #report-screen h4 {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    #report-screen table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    #report-screen th, #report-screen td {
+      border: 1px solid #444;
+      padding: 8px;
+      text-align: center;
+    }
+
+    #report-screen img {
+      height: 60px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .header-image {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      width: 75px;
+      height: 70px;
+    }
+  </style>
+</head>
+<body>
+<header class="mb-8 relative">
+  <img src="https://raw.githubusercontent.com/yloadingg/U-FIND-/refs/heads/main/src/assets/images/DEC.png" alt="Dashboard Image" class="header-image" />
+</header>
+  <!-- Header -->
+  <div class="header">
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
+    ADMIN DASHBOARD
+  </div>
+
+  <!-- Sidebar -->
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <a href="#" onclick="toggleSidebar()">✕</a>
+  <a href="index.html">Home</a> <!-- ✅ Added this line -->
+  <a href="active-users.html">Active Users</a>
+  <a href="uploaded-missing-items.html">Uploaded Missing Items</a>
+  <a href="claimed-missing-items.html">Claimed Items List</a>
+  <a href="reported-posts.html">Reported Posts</a>
+  <a href="generate-report.html">Monthly Reports</a>
+</div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Content -->
+  <div class="content" id="main-content">
+    <button class="generate-btn" onclick="generateReport()">Generate Report</button>
+
+    <div class="month-select">
+      <select id="month">
+        <option value="01">January</option>
+        <option value="02">February</option>
+        <option value="03">March</option>
+        <option value="04">April</option>
+        <option value="05">May</option>
+        <option value="06">June</option>
+        <option value="07">July</option>
+        <option value="08">August</option>
+        <option value="09">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <input type="text" value="2025" disabled />
+    </div>
+  </div>
+
+  <!-- Full-Screen Report Overlay -->
+  <div id="report-screen">
+    <button id="report-close" onclick="closeReport()">✕</button>
+    <div id="report-output"></div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    }
+
+    function generateReport() {
+      const month = document.getElementById('month');
+      const selectedMonth = month.options[month.selectedIndex].text;
+      const year = "2025";
+
+      const reportHTML = `
+        <img src="u-find-logo.png" alt="U Find Logo" />
+        <h2>U FIND’S MONTHLY REPORT</h2>
+        <h4>${selectedMonth.toUpperCase()} ${year}</h4>
+        <table>
+          <tr>
+            <td><strong>200</strong><br/>Missing Items Uploaded</td>
+            <td><strong>201</strong><br/>Claimed Missing Items</td>
+            <td><strong>12</strong><br/>Reported Items</td>
+          </tr>
+        </table>
+        <hr/>
+        <h3>1. Uploaded Missing Items</h3>
+        <table>
+          <tr><th>Item Identifier</th><th>Item Description</th><th>Date Uploaded</th><th>Founder User</th></tr>
+          <tr><td>001</td><td>Red Backpack</td><td>${selectedMonth} 5</td><td>user_jane</td></tr>
+        </table>
+        <h3>2. Claimed Missing Items</h3>
+        <table>
+          <tr><th>Item Identifier</th><th>Item Description</th><th>Date Claimed</th><th>Claimed By</th></tr>
+          <tr><td>001</td><td>Red Backpack</td><td>${selectedMonth} 10</td><td>user_john</td></tr>
+        </table>
+        <h3>3. Reported Posts</h3>
+        <table>
+          <tr><th>Item Identifier</th><th>Item Description</th><th>Issue Details</th><th>Reported By</th></tr>
+          <tr><td>007</td><td>Blue Wallet</td><td>Suspicious claim</td><td>admin_tina</td></tr>
+        </table>
+      `;
+
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('report-screen').classList.add('active');
+      document.getElementById('report-output').innerHTML = reportHTML;
+    }
+
+    function closeReport() {
+      document.getElementById('main-content').style.display = 'block';
+      document.getElementById('report-screen').classList.remove('active');
+      document.getElementById('report-output').innerHTML = '';
+    }
+  </script>
+
+</body>
+</html>
